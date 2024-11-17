@@ -3,9 +3,9 @@
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="week_three_machine_task_stock"
+        android:label="Stock Tracker"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/app_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

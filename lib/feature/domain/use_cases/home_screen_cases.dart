@@ -6,19 +6,27 @@ import 'package:week_three_machine_task_stock/feature/data/repository/home_servi
 
 import '../../../core/utils/debouncer_class.dart';
 
-class HomeScreenCases{
-
-
-  HomeServices homeServices =HomeServices();
+class HomeScreenCases {
+  HomeServices homeServices = HomeServices();
   final debouncer = Debouncer(milliseconds: 1000);
-  getStockList(String tag,BuildContext context) async {
+
+  getStockList(String tag, BuildContext context) async {
     debouncer.run(() async {
-        final data = await homeServices.getSearchCompanyResults(tag);
-        if(data.runtimeType == String && data!="notnull") {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(data)));
-        }
-        //print("Data ${data.runtimeType}");
+      final data = await homeServices.getSearchCompanyResults(tag);
+      if (data.runtimeType == String && data != "notnull") {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              data,
+              style: const TextStyle(color: Colors.white),
+            ),
+            margin: const EdgeInsets.all(10.0),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+      //print("Data ${data.runtimeType}");
     });
   }
 }

@@ -12,16 +12,16 @@ class HiveOperations {
       final dbData = Hive.box<WatchListHive>("comp");
       print("addToStorage Data ${dbData.values}");
       final id = await dbData.add(dataModel);
-      // final entry = dbData.get(id);
-      // final lastModel = TodayStockDetailsModel(
-      //   companyName: dataModel.companyName,
-      //   latestPrice: dataModel.latestPrice,
-      //   previousPrice: dataModel.previousPrice,
-      //   id: id,
-      // );
-      // if (entry != null) {
-      //   await dbData.put(id, lastModel);
-      // }
+      final entry = dbData.get(id);
+      final lastModel = WatchListHive(
+        companyName: dataModel.companyName,
+        latestPrice: dataModel.latestPrice,
+        previousPrice: dataModel.previousPrice,
+        id: id,
+      );
+      if (entry != null) {
+        await dbData.put(id, lastModel);
+      }
       print("dbData - $dbData");
     }catch (e){
       print("Add Data Exception ${e.toString()}");
@@ -41,7 +41,7 @@ class HiveOperations {
   static deleteData(int id){
     print("ID Delete $id");
     final dbData = Hive.box<WatchListHive>("comp");
-    dbData.deleteAt(id);
+    dbData.delete(id);
     getDatas();
   }
 

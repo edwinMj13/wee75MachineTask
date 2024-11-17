@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:week_three_machine_task_stock/feature/data/models/watchlist_hive_model.dart';
-import 'package:week_three_machine_task_stock/main_screen.dart';
+import 'package:week_three_machine_task_stock/feature/presentation/screen/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'BW M Week 1',
+      title: 'Stock Tracker',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
