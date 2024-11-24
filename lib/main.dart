@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:week_three_machine_task_stock/feature/data/models/watchlist_hive_model.dart';
-import 'package:week_three_machine_task_stock/feature/presentation/screen/main_screen.dart';
+import 'package:week_three_machine_task_stock/feature/presentation/screen/main_screen/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,13 +19,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Stock Tracker',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-      ),
-      home: const MainScreen(),
-    );
+    return GetMaterialApp(
+        title: 'Stock Tracker',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          brightness: Brightness.dark,
+        ),
+        home:  const MainScreen(),
+      );
   }
 }

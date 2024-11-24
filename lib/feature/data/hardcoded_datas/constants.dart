@@ -1,4 +1,4 @@
-const apiKey = "&apikey=SEUDKMOSJ5PR8VFH";  //NEYQQHZ9DSWP6SKC
+const apiKey = "&apikey=6WK3FS54659FBMUC";  //NEYQQHZ9DSWP6SKC   // phone my   6WK3FS54659FBMUC
 
 const baseUrl = "https://www.alphavantage.co/query?";
 

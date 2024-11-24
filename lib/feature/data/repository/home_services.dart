@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:either_dart/either.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:week_three_machine_task_stock/feature/data/hardcoded_datas/constants.dart';
-import 'package:week_three_machine_task_stock/feature/data/models/CompanyStockModel.dart';
+import 'package:week_three_machine_task_stock/feature/data/models/company_stock_model.dart';
+import 'package:week_three_machine_task_stock/feature/data/models/error_model.dart';
 import 'package:week_three_machine_task_stock/feature/data/models/search_keyword_model.dart';
 import 'package:week_three_machine_task_stock/feature/data/models/todays_stock_details_model.dart';
 import 'package:week_three_machine_task_stock/feature/domain/repositories/home_repository.dart';
@@ -13,39 +15,44 @@ import 'package:http/http.dart' as http;
 import '../models/watchlist_hive_model.dart';
 
 class HomeServices implements HomeRepo {
-  static ValueNotifier<List<WatchListHive>> stockValueListener =
-      ValueNotifier([]);
-
   @override
-  Future<String> getSearchCompanyResults(String tag) async {
+  Future<dynamic> getSearchCompanyResults(String tag) async {
     print("Search Tag - $tag");
     dynamic dataList;
     final date = DateTime.now();
     final currentDate = "${date.year}-${date.month}-${date.day - 1}";
     final previousDate = "${date.year}-${date.month}-${date.day - 2}";
-    List<Future<Either<String, WatchListHive>>> compMethods = [];
+    List<Future<Either<ErrorModel, WatchListHive>>> compMethods = [];
     try {
       final response = await http.get(Uri.parse("$baseUrl$urlSearchFunctions$urlKeywords$tag$apiKey"));
       //final response = await http.get(Uri.parse("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=$tag$apiKey"));
       //final response = await http.get(Uri.parse("https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea"));  // Fake  "invalid Api"
-      //final response = await http.get(Uri.parse("https://mocki.io/v1/69867981-9dca-4570-93d0-5efdf6f26898"));  // Fake bestMatches API
+      //final response = await http.get(Uri.parse("https://mocki.io/v1/87d507fc-70b8-4c4f-bf00-8dc60e7892fc")); // Fake bestMatches API
       final json = jsonDecode(response.body) as Map<String, dynamic>;
-      print("${response.statusCode} getSearchCompanyResults Response${json}]");
+      if (kDebugMode) {
+        print("${response.statusCode} getSearchCompanyResults Response $json");
+      }
+
       if ((response.statusCode > 199 && response.statusCode < 300)) {
         if (json.containsKey("bestMatches")) {
           final data = SearchKeywordModel.fromJson(json);
-          //print("Search Response - ${data.bestMatches}");
+          debugPrint(
+              "   debugPrint   -   Search Response - ${data.bestMatches}");
 
           data.bestMatches?.forEach((elem) {
-            print("getSearchCompanyResults Names - $elem");
-            compMethods.add(getCompanyStock(elem.name!, currentDate, previousDate));
+            print(
+                "getSearchCompanyResults  data.bestMatches NAMES - ${elem.name}");
+            print(
+                "getSearchCompanyResults  data.bestMatches Symbol - ${elem.symbol}");
+            compMethods
+                .add(getCompanyStock(elem.symbol!, currentDate, previousDate));
           });
           /*List<String> fakeApiList = [
-            "https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea",
-            "https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea",
-            "https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea",
+            "https://mocki.io/v1/d2d6a05d-72f6-49f6-b6d2-c5b82817776b",
+            "https://mocki.io/v1/43e0bd83-a6d6-4039-9b06-19ace7b394e4",
+            "https://mocki.io/v1/d2d6a05d-72f6-49f6-b6d2-c5b82817776b",
             "https://mocki.io/v1/b61517ee-9e0b-4aa0-a3d3-ea8aa33aef67", // data
-            "https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea",
+            "https://mocki.io/v1/b61517ee-9e0b-4aa0-a3d3-ea8aa33aef67",
           ];
           for (var elem in fakeApiList) {
             print("getSearchCompanyResults Names - $elem");
@@ -58,7 +65,7 @@ class HomeServices implements HomeRepo {
               stockList.map((q) => q.fold((fnL) => fnL, (fnR) => fnR)).toList();
 
           print(
-              "getSearchCompanyResults successfull.runtimeType ${successfull[3].runtimeType}");
+              "getSearchCompanyResults successfull.runtimeType ${successfull[3]}");
           print("getSearchCompanyResults successfull $successfull");
 
           //final lstList = stockList.map((comp){return TodayStockDetailsModel(companyName: comp["companyName"], latestPrice: comp["latestPrice"]);}).toList();
@@ -72,23 +79,22 @@ class HomeServices implements HomeRepo {
           }
           print("newList $newList");
           if (newList.isNotEmpty) {
-            stockValueListener.value = List.from(newList);
-            print("stockValueListener.value  -  ${stockValueListener.value}");
-            // if there is WatchListHive at least 1 then show it. if there is no WatchList return the error;
-            dataList = "notnull";
+            dataList = newList;
           } else {
-            if(stockValueListener.value.isNotEmpty){
-              stockValueListener.value=List.from([]);
-            }
-            dataList = successfull.first;
+            final error = successfull.first as ErrorModel;
+            dataList = ErrorModel(
+                code: "error", message: error.message);
           }
         } else if (json.containsKey("Information")) {
-          dataList = json["Information"];
+          dataList =
+              ErrorModel(code: "Information", message: json["Information"]);
         } else if (json.containsKey("Error Message")) {
-          dataList = json["Error Message"];
+          dataList =
+              ErrorModel(code: "Error Message", message: json["Error Message"]);
         } else {
           print("Unknown Error");
-          dataList = json.toString();
+          dataList =
+              ErrorModel(code: "Unknown Error", message: json.toString());
         }
       }
     } catch (e) {
@@ -97,16 +103,16 @@ class HomeServices implements HomeRepo {
     return dataList;
   }
 
-  Future<Either<String, WatchListHive>> getCompanyStock(String companyNames,
-      String currentDate, String previousDate) async {
+  Future<Either<ErrorModel, WatchListHive>> getCompanyStock(
+      String companyNames, String currentDate, String previousDate) async {
     print("current Date - $currentDate");
     print("previous Date - $previousDate");
 
     //final finalData = companyNames.map((name) async {
     print("Companies - $companyNames");
     try {
-      //final response = await http.get(Uri.parse("https://mocki.io/v1/b61517ee-9e0b-4aa0-a3d3-ea8aa33aef67"));  // Fake data
-      //final response = await http.get(Uri.parse(mockApi)); // multiple Response Check
+      //final response = await http.get(Uri.parse("https://mocki.io/v1/d2d6a05d-72f6-49f6-b6d2-c5b82817776b")); // Fake data
+      //final response = await http.get(Uri.parse(elem)); // multiple Response Check
       //final response = await http.get(Uri.parse("https://mocki.io/v1/16f57d52-ad4d-44d0-93dd-bcd8dd481571"));  // Fake Information
       //final response = await http.get(Uri.parse("https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea"));  // Fake "invalid Api"
       final response = await http.get(Uri.parse("$baseUrl$urlGetCompanyFunctions$urlCompany$companyNames$urlOutputSize$apiKey"));
@@ -140,22 +146,34 @@ class HomeServices implements HomeRepo {
           ));
         } else if (json.containsKey("Error Message")) {
           print(" Error Message   -   getCompanyStock");
-          return Left(json["Error Message"]);
+          return Left(ErrorModel(
+            message: json["Error Message"],
+            code: "Error Message",
+          ));
         } else if (json.containsKey("Information")) {
           print(" INFORMATION  ERROR -  getCompanyStock");
-          return Left(json["Information"]);
+          return Left(ErrorModel(code: "Information", message: json["Information"]));
         } else {
           print("Unknown Error");
-          return Left(json.toString());
+          return Left(ErrorModel(
+            message: "Unknown Error",
+            code: json.toString(),
+          ));
         }
         //print("companyStocks - ${companyStocks.companyName}");
       } else {
-        return Left(response.body);
+        return Left(ErrorModel(
+          message: response.body,
+          code: response.statusCode.toString(),
+        ));
       }
     } catch (e) {
       print("Exception occurred on getCompanyStock() ${e.toString()}");
 
-      return Left("Exception occurred ${e.toString()}");
+      return Left(ErrorModel(
+        message: "Exception occurred on getCompanyStock()",
+        code: e.toString(),
+      ));
     }
     //}).toList();
 

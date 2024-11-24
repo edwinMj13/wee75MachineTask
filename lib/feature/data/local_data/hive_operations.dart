@@ -5,7 +5,7 @@ import 'package:week_three_machine_task_stock/feature/data/models/todays_stock_d
 import '../models/watchlist_hive_model.dart';
 
 class HiveOperations {
-  static ValueNotifier<List<WatchListHive>> watchListNotifier = ValueNotifier([]);
+  //static ValueNotifier<List<WatchListHive>> watchListNotifier = ValueNotifier([]);
   static addToStorage(WatchListHive dataModel) async {
     try{
       //final dbData = await Hive.openBox<WatchListHive>("comp");
@@ -29,20 +29,19 @@ class HiveOperations {
 
   }
 
-  static getDatas(){
+  static List<WatchListHive> getDatas(){
     final dbData = Hive.box<WatchListHive>("comp");
-    watchListNotifier.value.clear();
-    //watchListNotifier.value.addAll(dbData.values);
-
-    watchListNotifier.value = List.from(dbData.values);
-    print("Get Data ${watchListNotifier.value}");
+    // watchListNotifier.value.clear();
+    // watchListNotifier.value.addAll(dbData.values);
+    // watchListNotifier.value = List.from(dbData.values);
+    //print("Get Data ${watchListNotifier.value}");
+    return List.from(dbData.values);
   }
 
   static deleteData(int id){
     print("ID Delete $id");
     final dbData = Hive.box<WatchListHive>("comp");
     dbData.delete(id);
-    getDatas();
   }
 
 }

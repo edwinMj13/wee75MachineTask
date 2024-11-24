@@ -1,13 +1,14 @@
 
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 class EmptyListWidget extends StatelessWidget {
-   EmptyListWidget({
+   const EmptyListWidget({
     super.key,
     required this.title,
+    required this.icon,
   });
-  String title;
+  final String title;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,7 @@ class EmptyListWidget extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(CupertinoIcons.layers_alt,size: 100,),
+          Icon(icon,size: 100,),
           Text(title),
         ],
       ),
