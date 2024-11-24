@@ -28,26 +28,32 @@ class HomeServices implements HomeRepo {
       //final response = await http.get(Uri.parse("https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=$tag$apiKey"));
       //final response = await http.get(Uri.parse("https://mocki.io/v1/0e716cbc-0930-422e-bb88-9da606d843ea"));  // Fake  "invalid Api"
       //final response = await http.get(Uri.parse("https://mocki.io/v1/87d507fc-70b8-4c4f-bf00-8dc60e7892fc")); // Fake bestMatches API
+      //final response = await http.get(Uri.parse("https://mocki.io/v1/346b0bd8-35fd-408f-b6a3-d6b16aba87c8")); // NULL bestMatches API
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       if (kDebugMode) {
         print("${response.statusCode} getSearchCompanyResults Response $json");
       }
 
       if ((response.statusCode > 199 && response.statusCode < 300)) {
+        final searchResults = SearchKeywordModel.fromJson(json);
         if (json.containsKey("bestMatches")) {
-          final data = SearchKeywordModel.fromJson(json);
-          debugPrint(
-              "   debugPrint   -   Search Response - ${data.bestMatches}");
+          if(searchResults.bestMatches!.isNotEmpty) {
+            final data = SearchKeywordModel.fromJson(json);
+            debugPrint(
+                "   debugPrint   -   Search Response - ${data.bestMatches}");
 
-          data.bestMatches?.forEach((elem) {
-            print(
-                "getSearchCompanyResults  data.bestMatches NAMES - ${elem.name}");
-            print(
-                "getSearchCompanyResults  data.bestMatches Symbol - ${elem.symbol}");
-            compMethods
-                .add(getCompanyStock(elem.symbol!, currentDate, previousDate));
-          });
-          /*List<String> fakeApiList = [
+            data.bestMatches?.forEach((elem) {
+              print(
+                  "getSearchCompanyResults  data.bestMatches NAMES - ${elem
+                      .name}");
+              print(
+                  "getSearchCompanyResults  data.bestMatches Symbol - ${elem
+                      .symbol}");
+              compMethods
+                  .add(
+                  getCompanyStock(elem.symbol!, currentDate, previousDate));
+            });
+            /*List<String> fakeApiList = [
             "https://mocki.io/v1/d2d6a05d-72f6-49f6-b6d2-c5b82817776b",
             "https://mocki.io/v1/43e0bd83-a6d6-4039-9b06-19ace7b394e4",
             "https://mocki.io/v1/d2d6a05d-72f6-49f6-b6d2-c5b82817776b",
@@ -59,31 +65,34 @@ class HomeServices implements HomeRepo {
             compMethods
                 .add(getCompanyStock(elem, currentDate, previousDate, elem));
           }*/
-          final stockList = await Future.wait(compMethods);
+            final stockList = await Future.wait(compMethods);
 
-          final successfull =
-              stockList.map((q) => q.fold((fnL) => fnL, (fnR) => fnR)).toList();
+            final successfull =
+            stockList.map((q) => q.fold((fnL) => fnL, (fnR) => fnR)).toList();
 
-          print(
-              "getSearchCompanyResults successfull.runtimeType ${successfull[3]}");
-          print("getSearchCompanyResults successfull $successfull");
+            print(
+                "getSearchCompanyResults successfull.runtimeType ${successfull[3]}");
+            print("getSearchCompanyResults successfull $successfull");
 
-          //final lstList = stockList.map((comp){return TodayStockDetailsModel(companyName: comp["companyName"], latestPrice: comp["latestPrice"]);}).toList();
-          List<WatchListHive> newList = [];
-          for (int i = 0; i < successfull.length; i++) {
-            print("Inside Loop");
-            if (successfull[i].runtimeType == WatchListHive) {
-              print("Inside Loop Condition");
-              newList.add(successfull[i] as WatchListHive);
+            //final lstList = stockList.map((comp){return TodayStockDetailsModel(companyName: comp["companyName"], latestPrice: comp["latestPrice"]);}).toList();
+            List<WatchListHive> newList = [];
+            for (int i = 0; i < successfull.length; i++) {
+              print("Inside Loop");
+              if (successfull[i].runtimeType == WatchListHive) {
+                print("Inside Loop Condition");
+                newList.add(successfull[i] as WatchListHive);
+              }
             }
-          }
-          print("newList $newList");
-          if (newList.isNotEmpty) {
-            dataList = newList;
-          } else {
-            final error = successfull.first as ErrorModel;
-            dataList = ErrorModel(
-                code: "error", message: error.message);
+            print("newList $newList");
+            if (newList.isNotEmpty) {
+              dataList = newList;
+            } else {
+              final error = successfull.first as ErrorModel;
+              dataList = ErrorModel(
+                  code: "error", message: error.message);
+            }
+          }else{
+            dataList = ErrorModel(code: "No Value",message: "No Matches Available",);
           }
         } else if (json.containsKey("Information")) {
           dataList =
@@ -96,6 +105,8 @@ class HomeServices implements HomeRepo {
           dataList =
               ErrorModel(code: "Unknown Error", message: json.toString());
         }
+      }else{
+        print("STATUUS Code ${response.body}");
       }
     } catch (e) {
       print("Exception occurred on getSearchCompanyResults() ${e.toString()}");
